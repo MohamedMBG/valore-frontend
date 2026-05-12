@@ -15,19 +15,11 @@ const IntroWrapper = ({ children }) => {
     if (pathname !== '/') {
       router.push('/');
     }
-
-    // Check if intro has already been shown in this session
-    const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
-    if (hasSeenIntro) {
-      setShowIntro(false);
-      setContentVisible(true);
-    }
-  }, []);
+  }, [pathname, router]);
 
   const handleComplete = () => {
     setShowIntro(false);
     setContentVisible(true);
-    sessionStorage.setItem('hasSeenIntro', 'true');
   };
 
   return (

@@ -12,6 +12,10 @@ export default function Navbar() {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
+  if (pathname === '/stories') {
+    return null;
+  }
+
   const links = [
     { href: '/', label: 'Home' },
     { href: '/shop', label: 'Shop' },

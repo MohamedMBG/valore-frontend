@@ -1,461 +1,589 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-function generateStars(count) {
-  const stars = [];
-  for (let i = 0; i < count; i++) {
-    stars.push({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2.5 + 0.5,
-      opacity: Math.random() * 0.8 + 0.2,
-      animDuration: Math.random() * 4 + 2,
-      animDelay: Math.random() * 5,
-    });
-  }
-  return stars;
+const FRAME_LERP = 0.14;
+const MIN_SCROLL_SCREENS = 6;
+const MAX_SCROLL_SCREENS = 12;
+const STORY_CARDS = [
+  {
+    id: 'alex',
+    eyebrow: 'Breakthrough',
+    title: 'Overcoming the plateau',
+    quote:
+      'I was repeating the same moves for years. The shift came when I rebuilt the system, not the motivation.',
+    author: 'Alex M.',
+    accent: 'from-cyan-300/70 via-white/30 to-transparent',
+  },
+  {
+    id: 'sarah',
+    eyebrow: 'Rebuild',
+    title: 'Built from zero',
+    quote:
+      'No audience, no product, no momentum. The discipline stack made the studio real.',
+    author: 'Sarah K.',
+    accent: 'from-white/70 via-white/20 to-transparent',
+  },
+  {
+    id: 'marcus',
+    eyebrow: 'Discipline',
+    title: 'Systems over moods',
+    quote:
+      'Once the workflow became repeatable, progress stopped feeling random.',
+    author: 'Marcus T.',
+    accent: 'from-zinc-200/60 via-white/16 to-transparent',
+  },
+];
+const STORY_TIMELINE = [
+  {
+    step: '01',
+    label: 'Reset',
+    detail: 'Cut the noise, rebuild the process, and make progress measurable.',
+  },
+  {
+    step: '02',
+    label: 'System',
+    detail: 'Turn discipline into a repeatable operating rhythm instead of a mood.',
+  },
+  {
+    step: '03',
+    label: 'Scale',
+    detail: 'What starts as a habit becomes a studio, a product, or a body of work.',
+  },
+];
+const FEATURE_PILLARS = [
+  {
+    id: 'clarity',
+    title: 'Clarity',
+    copy: 'Cut through noise, identify leverage, and focus the next move.',
+  },
+  {
+    id: 'cadence',
+    title: 'Cadence',
+    copy: 'Build a pace that survives low-energy days and compounds on strong ones.',
+  },
+  {
+    id: 'craft',
+    title: 'Craft',
+    copy: 'Make the work feel sharp, deliberate, and impossible to confuse with average.',
+  },
+];
+const SIGNALS = [
+  { label: 'Stories collected', value: '168' },
+  { label: 'Frames in sequence', value: '240+' },
+  { label: 'System rebuilds', value: '03' },
+  { label: 'Focus level', value: 'High' },
+];
+const LONGFORM_NOTES = [
+  {
+    id: 'discipline',
+    eyebrow: 'Field Note 01',
+    title: 'Discipline is architecture',
+    copy:
+      'The strongest stories do not start with momentum. They start with a boring, repeatable structure that keeps producing output when emotion is gone.',
+  },
+  {
+    id: 'taste',
+    eyebrow: 'Field Note 02',
+    title: 'Taste needs standards',
+    copy:
+      'Ambition without standards becomes aesthetic fog. Progress appears when the bar is visible, named, and defended every week.',
+  },
+  {
+    id: 'scale',
+    eyebrow: 'Field Note 03',
+    title: 'Scale comes after proof',
+    copy:
+      'Once the process can survive repetition, it can survive growth. What was private discipline becomes public work with weight behind it.',
+  },
+];
+const CLOSING_QUOTES = [
+  'Progress gets cinematic when the system gets real.',
+  'The frame changes because the behavior changed first.',
+  'Better work usually begins with quieter rules.',
+];
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
 
-export default function StoriesSection() {
-  const [mounted, setMounted] = useState(false);
-  const [stars] = useState(() => generateStars(220));
+function drawImageCover(context, canvas, image) {
+  const { width, height } = canvas.getBoundingClientRect();
+  const imageAspectRatio = image.naturalWidth / image.naturalHeight;
+  const canvasAspectRatio = width / height;
+
+  let drawWidth = width;
+  let drawHeight = height;
+
+  if (imageAspectRatio > canvasAspectRatio) {
+    drawWidth = height * imageAspectRatio;
+  } else {
+    drawHeight = width / imageAspectRatio;
+  }
+
+  const offsetX = (width - drawWidth) / 2;
+  const offsetY = (height - drawHeight) / 2;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = '#000000';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+}
+
+export default function StoriesSection({ frameUrls = [] }) {
+  const sectionRef = useRef(null);
+  const canvasRef = useRef(null);
+  const framesRef = useRef([]);
+  const animationFrameRef = useRef(null);
+  const targetProgressRef = useRef(0);
+  const currentProgressRef = useRef(0);
+  const lastFrameIndexRef = useRef(-1);
+  const [isReady, setIsReady] = useState(false);
+
+  const scrollScreens = clamp(
+    Math.ceil(frameUrls.length / 20) + 5,
+    MIN_SCROLL_SCREENS,
+    MAX_SCROLL_SCREENS
+  );
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (frameUrls.length === 0) {
+      return undefined;
+    }
 
-  const stories = [
-    { id: 1, title: 'OVERCOMING THE PLATEAU', author: 'ALEX M.', content: '"I was stuck at the same level for years. Drogow gave me the blueprint to break through."', planet: '🪐' },
-    { id: 2, title: 'BUILDING FROM SCRATCH', author: 'SARAH K.', content: '"No audience, no product. Now I am running a 6-figure studio. The mindset shift was everything."', planet: '🌍' },
-    { id: 3, title: 'THE ART OF DISCIPLINE', author: 'MARCUS T.', content: '"It is not about motivation. It is about systems. This completely rewired how I work."', planet: '⭐' },
-  ];
+    let isCancelled = false;
+
+    const preloadFrames = async () => {
+      const loadedFrames = await Promise.all(
+        frameUrls.map(
+          (src) =>
+            new Promise((resolve, reject) => {
+              const image = new Image();
+              image.decoding = 'async';
+              image.src = src;
+              image.onload = () => resolve(image);
+              image.onerror = () => reject(new Error(`Failed to load frame: ${src}`));
+            })
+        )
+      );
+
+      if (isCancelled) {
+        return;
+      }
+
+      framesRef.current = loadedFrames;
+      setIsReady(true);
+    };
+
+    preloadFrames().catch((error) => {
+      console.error(error);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [frameUrls]);
+
+  useEffect(() => {
+    if (!isReady || frameUrls.length === 0) {
+      return undefined;
+    }
+
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext('2d');
+
+    if (!canvas || !context) {
+      return undefined;
+    }
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+
+    const resizeCanvas = () => {
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      canvas.width = Math.round(width * devicePixelRatio);
+      canvas.height = Math.round(height * devicePixelRatio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+
+      const currentFrame = framesRef.current[lastFrameIndexRef.current] ?? framesRef.current[0];
+
+      if (currentFrame) {
+        drawImageCover(context, canvas, currentFrame);
+      }
+    };
+
+    const updateTargetProgress = () => {
+      const section = sectionRef.current;
+
+      if (!section) {
+        return;
+      }
+
+      const scrollableDistance = Math.max(section.offsetHeight - window.innerHeight, 1);
+      const rawProgress = (window.scrollY - section.offsetTop) / scrollableDistance;
+      targetProgressRef.current = clamp(rawProgress, 0, 1);
+    };
+
+    const drawFrame = (frameIndex) => {
+      if (frameIndex === lastFrameIndexRef.current) {
+        return;
+      }
+
+      const frame = framesRef.current[frameIndex];
+
+      if (!frame) {
+        return;
+      }
+
+      drawImageCover(context, canvas, frame);
+      lastFrameIndexRef.current = frameIndex;
+    };
+
+    const tick = () => {
+      // Lerp keeps frame changes fluid instead of snapping on each scroll event.
+      const delta = targetProgressRef.current - currentProgressRef.current;
+
+      if (Math.abs(delta) < 0.0005) {
+        currentProgressRef.current = targetProgressRef.current;
+      } else {
+        currentProgressRef.current += delta * FRAME_LERP;
+      }
+
+      const frameIndex = Math.round(
+        currentProgressRef.current * (framesRef.current.length - 1)
+      );
+
+      drawFrame(frameIndex);
+      animationFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    resizeCanvas();
+    updateTargetProgress();
+    drawFrame(0);
+    animationFrameRef.current = window.requestAnimationFrame(tick);
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('scroll', updateTargetProgress, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('scroll', updateTargetProgress);
+
+      if (animationFrameRef.current) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [frameUrls.length, isReady]);
+
+  if (frameUrls.length === 0) {
+    return <section className="min-h-screen bg-black" />;
+  }
 
   return (
-    <div style={{
-      position: 'relative',
-      backgroundColor: '#02020f',
-      color: '#ffffff',
-      padding: '120px 24px 160px',
-      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-      overflow: 'hidden',
-      minHeight: '100vh',
-    }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
-
-        @keyframes starTwinkle {
-          0%, 100% { opacity: var(--op, 0.5); transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.4); }
-        }
-        @keyframes floatY {
-          0%, 100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
-          50% { transform: translateY(-25px) rotate(var(--rot, 0deg)); }
-        }
-        @keyframes floatYSlow {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-18px); }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes orbitRing {
-          from { transform: rotateX(75deg) rotate(0deg); }
-          to { transform: rotateX(75deg) rotate(360deg); }
-        }
-        @keyframes nebulaPulse {
-          0%, 100% { opacity: 0.18; transform: scale(1); }
-          50% { opacity: 0.28; transform: scale(1.05); }
-        }
-        @keyframes shootStar {
-          0% { transform: translateX(0) translateY(0) rotate(-35deg); opacity: 1; width: 120px; }
-          100% { transform: translateX(-900px) translateY(400px) rotate(-35deg); opacity: 0; width: 0px; }
-        }
-        @keyframes cardGlow {
-          0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0px rgba(160,120,255,0); }
-          50% { box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(160,120,255,0.12); }
-        }
-        @keyframes satelliteOrbit {
-          from { transform: rotate(0deg) translateX(90px) rotate(0deg); }
-          to { transform: rotate(360deg) translateX(90px) rotate(-360deg); }
-        }
-        .story-card:hover {
-          transform: translateY(-14px) scale(1.02) !important;
-          border-color: rgba(160,120,255,0.5) !important;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(160,120,255,0.18) !important;
-        }
-        .story-card { transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; }
-        .submit-btn:hover {
-          transform: translateY(-3px) scale(1.03) !important;
-          box-shadow: 0 12px 35px rgba(100,60,220,0.65) !important;
-        }
-        .cosmic-input:focus {
-          border-color: rgba(160,120,255,0.7) !important;
-          box-shadow: 0 0 15px rgba(160,120,255,0.25) !important;
-          outline: none;
-        }
-      `}</style>
-
-      {/* ─── Dense Starfield ─── */}
-      {mounted && stars.map(s => (
-        <div key={s.id} style={{
-          position: 'absolute',
-          left: `${s.x}%`,
-          top: `${s.y}%`,
-          width: `${s.size}px`,
-          height: `${s.size}px`,
-          borderRadius: '50%',
-          backgroundColor: s.size > 2 ? '#e8d8ff' : '#ffffff',
-          '--op': s.opacity,
-          opacity: s.opacity,
-          animation: `starTwinkle ${s.animDuration}s ${s.animDelay}s ease-in-out infinite`,
-          boxShadow: s.size > 1.8 ? `0 0 ${s.size * 3}px rgba(220,200,255,0.8)` : 'none',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }} />
-      ))}
-
-      {/* ─── Shooting Star ─── */}
-      {mounted && (
-        <div style={{
-          position: 'absolute', top: '8%', right: '5%',
-          height: '2px', background: 'linear-gradient(90deg, #ffffff, rgba(255,255,255,0))',
-          borderRadius: '2px',
-          animation: 'shootStar 7s 1.5s linear infinite',
-          pointerEvents: 'none', zIndex: 0,
-          boxShadow: '0 0 8px #fff, 0 0 20px rgba(200,180,255,0.5)',
-        }} />
-      )}
-
-      {/* ─── Nebula Background Glows ─── */}
-      <div style={{
-        position: 'absolute', top: '0%', left: '-10%',
-        width: '700px', height: '700px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(80,40,160,0.25) 0%, transparent 70%)',
-        animation: 'nebulaPulse 12s ease-in-out infinite',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-      <div style={{
-        position: 'absolute', bottom: '5%', right: '-10%',
-        width: '600px', height: '600px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(20,60,140,0.22) 0%, transparent 70%)',
-        animation: 'nebulaPulse 16s 4s ease-in-out infinite',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-
-      {/* ─── PLANET 1: Saturn-like (top right) ─── */}
-      <div style={{
-        position: 'absolute', top: '4%', right: '7%',
-        width: '160px', height: '160px',
-        animation: 'floatY 9s ease-in-out infinite',
-        '--rot': '0deg',
-        pointerEvents: 'none', zIndex: 1,
-      }}>
-        {/* Planet body with spin */}
-        <div style={{
-          width: '160px', height: '160px', borderRadius: '50%',
-          background: 'radial-gradient(circle at 35% 30%, #f5e0c0 0%, #d4a96a 30%, #b07840 55%, #7a4e2a 80%, #3d2010 100%)',
-          boxShadow: '8px 12px 40px rgba(0,0,0,0.7), inset -25px -20px 40px rgba(0,0,0,0.5), inset 10px 8px 20px rgba(255,220,160,0.25)',
-          position: 'relative',
-          animation: 'spin 20s linear infinite',
-          transformStyle: 'preserve-3d',
-          zIndex: 2,
-        }}>
-          {/* Planet surface bands */}
-          {[22, 40, 58, 74].map((top, i) => (
-            <div key={i} style={{
-              position: 'absolute', left: '8%', right: '8%',
-              top: `${top}%`, height: `${4 + i}px`,
-              borderRadius: '50%',
-              backgroundColor: i % 2 === 0 ? 'rgba(180,120,60,0.3)' : 'rgba(255,200,100,0.15)',
-            }} />
-          ))}
-        </div>
-        {/* Saturn rings */}
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          width: '250px', height: '60px',
-          marginLeft: '-125px', marginTop: '-30px',
-          borderRadius: '50%',
-          border: '12px solid transparent',
-          borderTop: '12px solid rgba(210,170,100,0.55)',
-          borderBottom: '12px solid rgba(210,170,100,0.55)',
-          transform: 'rotateX(72deg)',
-          boxShadow: '0 0 0 6px rgba(180,140,80,0.3), 0 0 0 14px rgba(160,120,60,0.15)',
-          zIndex: 1,
-        }} />
-        {/* Ring shadow on planet */}
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          width: '250px', height: '60px',
-          marginLeft: '-125px', marginTop: '-30px',
-          borderRadius: '50%',
-          border: '2px solid rgba(60,40,10,0.4)',
-          transform: 'rotateX(72deg)',
-          zIndex: 3,
-        }} />
+    <section
+      ref={sectionRef}
+      className="relative bg-black"
+      style={{ height: `${scrollScreens * 100}vh` }}
+    >
+      <div className="sticky top-0 h-screen overflow-hidden bg-black">
+        {/* The sticky viewport keeps the canvas pinned while scroll progress drives frames. */}
+        <canvas
+          ref={canvasRef}
+          className="block h-full w-full"
+          aria-label="Scroll-driven frame animation"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.78)_0%,rgba(0,0,0,0.5)_28%,rgba(0,0,0,0.58)_64%,rgba(0,0,0,0.88)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_34%),radial-gradient(circle_at_80%_20%,rgba(0,198,255,0.08),transparent_26%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent" />
       </div>
 
-      {/* ─── PLANET 2: Earth-like (left middle) ─── */}
-      <div style={{
-        position: 'absolute', top: '38%', left: '3%',
-        width: '110px', height: '110px',
-        animation: 'floatYSlow 12s 3s ease-in-out infinite',
-        pointerEvents: 'none', zIndex: 1,
-      }}>
-        {/* Earth‑like planet with realistic continents */}
-        <div style={{
-          width: '110px', height: '110px', borderRadius: '50%',
-          background: `radial-gradient(circle at 30% 30%, #8be0f8 0%, #2a8fd4 20%, #1a5fa0 40%, #0a2a18 70%),
-                       radial-gradient(circle at 70% 70%, #3d7cb0 0%, #1a5fa0 50%, transparent 80%)`,
-          boxShadow: '5px 8px 30px rgba(0,0,0,0.7), inset -18px -14px 30px rgba(0,0,0,0.55), inset 8px 6px 15px rgba(150,230,255,0.2)',
-          position: 'relative',
-          animation: 'spin 30s linear infinite',
-          transformStyle: 'preserve-3d',
-        }}>
-          {/* Cloud layer */}
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            background: 'radial-gradient(ellipse at 60% 25%, rgba(255,255,255,0.25) 0%, transparent 45%), radial-gradient(ellipse at 30% 70%, rgba(255,255,255,0.15) 0%, transparent 30%)',
-          }} />
-          {/* Atmosphere halo */}
-          <div style={{
-            position: 'absolute', inset: '-6px', borderRadius: '50%',
-            background: 'radial-gradient(circle at 38% 30%, rgba(80,180,255,0.15) 0%, transparent 65%)',
-            boxShadow: '0 0 20px rgba(60,140,255,0.3)',
-          }} />
-        </div>
-        {/* Small moon orbiting */}
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%',
-          width: '14px', height: '14px',
-          marginLeft: '-7px', marginTop: '-7px',
-          animation: 'satelliteOrbit 8s linear infinite',
-        }}>
-          <div style={{
-            width: '14px', height: '14px', borderRadius: '50%',
-            background: 'radial-gradient(circle at 35% 30%, #e0dcd0, #a8a090)',
-            boxShadow: '2px 3px 8px rgba(0,0,0,0.6)',
-          }} />
-        </div>
-      </div>
+      <div className="relative z-20">
+        <div className="mx-auto flex min-h-screen w-full max-w-7xl items-start px-4 pb-[24vh] pt-24 md:px-8 md:pt-28">
+          <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,0.94fr)_minmax(22rem,28rem)] lg:gap-8">
+            <div className="space-y-[18vh]">
+              <section className="max-w-3xl rounded-[2rem] border border-white/10 bg-black/34 p-6 shadow-[0_40px_120px_rgba(0,0,0,0.48)] backdrop-blur-xl md:p-10">
+                <p className="mb-3 text-[0.68rem] font-medium uppercase tracking-[0.45em] text-white/55">
+                  Community Stories
+                </p>
+                <div className="flex items-start justify-between gap-6">
+                  <div className="max-w-2xl">
+                    <h1 className="font-display text-4xl font-semibold uppercase tracking-[0.14em] text-white md:text-6xl">
+                      Scroll The Journey
+                    </h1>
+                    <p className="mt-5 max-w-2xl text-sm leading-7 text-white/68 md:text-base">
+                      A cinematic reel driven by scroll, overlaid with discipline patterns,
+                      turning points, and outcome signals behind the work.
+                    </p>
+                  </div>
+                  <div className="hidden min-w-28 rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-5 text-right lg:block">
+                    <p className="text-[0.62rem] uppercase tracking-[0.4em] text-white/35">
+                      Frames
+                    </p>
+                    <p className="mt-2 font-display text-3xl uppercase tracking-[0.12em] text-white">
+                      {frameUrls.length}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-8 grid gap-3 md:grid-cols-3">
+                  {STORY_TIMELINE.map((item) => (
+                    <div
+                      key={item.step}
+                      className="rounded-[1.5rem] border border-white/10 bg-white/6 p-4 backdrop-blur-md"
+                    >
+                      <p className="text-[0.7rem] uppercase tracking-[0.35em] text-cyan-200/65">
+                        {item.step}
+                      </p>
+                      <h2 className="mt-3 font-display text-xl uppercase tracking-[0.08em] text-white">
+                        {item.label}
+                      </h2>
+                      <p className="mt-3 text-sm leading-6 text-white/58">
+                        {item.detail}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {SIGNALS.map((signal) => (
+                    <div
+                      key={signal.label}
+                      className="rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-5"
+                    >
+                      <p className="text-[0.62rem] uppercase tracking-[0.34em] text-white/38">
+                        {signal.label}
+                      </p>
+                      <p className="mt-3 font-display text-2xl uppercase tracking-[0.12em] text-white">
+                        {signal.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
-      {/* ─── PLANET 3: Mars-like (bottom right) ─── */}
-      <div style={{
-        position: 'absolute', bottom: '15%', right: '5%',
-        width: '80px', height: '80px',
-        animation: 'floatY 10s 6s ease-in-out infinite',
-        '--rot': '0deg',
-        pointerEvents: 'none', zIndex: 1,
-      }}>
-        {/* Mars‑like planet with subtle texture */}
-        <div style={{
-          width: '80px', height: '80px', borderRadius: '50%',
-          background: 'radial-gradient(circle at 35% 30%, #c95230 0%, #9a3a1a 35%, #5a1e08 70%)',
-          boxShadow: '4px 6px 20px rgba(0,0,0,0.7), inset -12px -10px 20px rgba(0,0,0,0.5)',
-          position: 'relative',
-          animation: 'spin 25s linear infinite',
-          transformStyle: 'preserve-3d',
-        }}>
-          {/* Surface details */}
-          <div style={{
-            position: 'absolute', top: '20%', left: '25%',
-            width: '30%', height: '20%', borderRadius: '50%',
-            background: 'rgba(0,0,0,0.15)',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: '25%', right: '20%',
-            width: '20%', height: '15%', borderRadius: '50%',
-            background: 'rgba(0,0,0,0.1)',
-          }} />
-        </div>
-      </div>
+              {/* These cards stay outside the canvas so the frame animation remains GPU-friendly. */}
+              <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_0.92fr]">
+                {STORY_CARDS.map((story, index) => (
+                  <article
+                    key={story.id}
+                    className={[
+                      'overflow-hidden rounded-[1.9rem] border border-white/12 bg-[linear-gradient(180deg,rgba(18,18,18,0.56),rgba(0,0,0,0.3))]',
+                      'p-6 shadow-[0_32px_100px_rgba(0,0,0,0.42)] backdrop-blur-xl md:p-7',
+                      index === 1 ? 'md:translate-y-10' : '',
+                      isReady ? 'opacity-100' : 'opacity-0',
+                      'transition-opacity duration-700',
+                    ].join(' ')}
+                  >
+                    <div className={`h-px w-full bg-gradient-to-r ${story.accent}`} />
+                    <div className="mt-6 flex items-start justify-between gap-4">
+                      <p className="text-[0.62rem] font-medium uppercase tracking-[0.38em] text-white/45">
+                        {story.eyebrow}
+                      </p>
+                      <div className="rounded-full border border-white/12 px-3 py-1 text-[0.58rem] uppercase tracking-[0.36em] text-white/38">
+                        Story
+                      </div>
+                    </div>
+                    <h2 className="mt-4 max-w-xs font-display text-2xl font-semibold uppercase tracking-[0.08em] text-white md:text-[2rem]">
+                      {story.title}
+                    </h2>
+                    <p className="mt-5 text-sm leading-7 text-white/72 md:text-[0.96rem]">
+                      {story.quote}
+                    </p>
+                    <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-4">
+                      <p className="text-[0.72rem] font-medium uppercase tracking-[0.3em] text-white/42">
+                        {story.author}
+                      </p>
+                      <div className="flex gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/65" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/18" />
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </section>
 
-      {/* ─── PLANET 4: Ice/Neptune-like (top left) ─── */}
-      <div style={{
-        position: 'absolute', top: '12%', left: '15%',
-        width: '55px', height: '55px',
-        animation: 'floatYSlow 14s 2s ease-in-out infinite',
-        pointerEvents: 'none', zIndex: 1,
-      }}>
-        {/* Ice/Neptune‑like planet with subtle glow */}
-        <div style={{
-          width: '55px', height: '55px', borderRadius: '50%',
-          background: 'radial-gradient(circle at 35% 30%, #a0d8f8 0%, #3090d0 30%, #1050a0 60%, #082050 100%)',
-          boxShadow: '3px 4px 15px rgba(0,0,0,0.7), inset -8px -6px 15px rgba(0,0,0,0.55), 0 0 15px rgba(60,140,255,0.2)',
-          animation: 'floatYSlow 12s ease-in-out infinite',
-          transformStyle: 'preserve-3d',
-        }} />
-      </div>
+              <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+                <article className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(8,8,8,0.52),rgba(0,0,0,0.34))] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.48)] backdrop-blur-xl md:p-8">
+                  <p className="text-[0.68rem] uppercase tracking-[0.42em] text-cyan-100/48">
+                    Why It Lands
+                  </p>
+                  <h2 className="mt-4 max-w-lg font-display text-3xl uppercase tracking-[0.1em] text-white md:text-4xl">
+                    The page should feel like evidence, not decoration
+                  </h2>
+                  <p className="mt-5 max-w-xl text-sm leading-7 text-white/66 md:text-base">
+                    Strong stories become believable when the presentation has structure. The
+                    film sets the emotional tempo. The cards, notes, and signals make the
+                    transformation legible.
+                  </p>
+                  <div className="mt-8 grid gap-3">
+                    {FEATURE_PILLARS.map((pillar) => (
+                      <div
+                        key={pillar.id}
+                        className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <h3 className="font-display text-xl uppercase tracking-[0.08em] text-white">
+                            {pillar.title}
+                          </h3>
+                          <div className="h-px flex-1 bg-gradient-to-r from-white/22 to-transparent" />
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-white/58">
+                          {pillar.copy}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
 
-      {/* ─── Main Content ─── */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
+                <div className="grid gap-4">
+                  {LONGFORM_NOTES.map((note, index) => (
+                    <article
+                      key={note.id}
+                      className={[
+                        'rounded-[1.8rem] border border-white/10 bg-black/30 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl',
+                        index === 1 ? 'xl:translate-x-8' : '',
+                      ].join(' ')}
+                    >
+                      <p className="text-[0.62rem] uppercase tracking-[0.4em] text-white/42">
+                        {note.eyebrow}
+                      </p>
+                      <h3 className="mt-4 font-display text-2xl uppercase tracking-[0.08em] text-white">
+                        {note.title}
+                      </h3>
+                      <p className="mt-4 text-sm leading-7 text-white/64 md:text-[0.96rem]">
+                        {note.copy}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </section>
 
-        {/* ─── Header ─── */}
-        <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <p style={{ fontSize: '0.8rem', letterSpacing: '0.4em', color: 'rgba(200,170,255,0.7)', textTransform: 'uppercase', marginBottom: '16px' }}>
-            ✦ COSMIC EXPLORATION ✦
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(2.2rem, 5vw, 4rem)',
-            fontWeight: '900',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            marginBottom: '20px',
-            lineHeight: 1.1,
-            background: 'linear-gradient(135deg, #c8a8ff 0%, #ffffff 45%, #8ad4ff 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>
-            Constellation of Success
-          </h1>
-          <div style={{
-            width: '80px', height: '2px', margin: '0 auto 20px',
-            background: 'linear-gradient(90deg, transparent, rgba(180,140,255,0.8), transparent)',
-          }} />
-          <p style={{ color: 'rgba(180,180,200,0.75)', fontSize: '1.1rem', letterSpacing: '0.03em', maxWidth: '500px', margin: '0 auto' }}>
-            Discover the magical journeys of those who reached the stars.
-          </p>
-        </div>
+              <section className="max-w-2xl rounded-[2rem] border border-white/10 bg-black/28 p-6 shadow-[0_32px_120px_rgba(0,0,0,0.5)] backdrop-blur-xl md:p-8">
+                <p className="text-[0.68rem] uppercase tracking-[0.42em] text-white/45">
+                  Editorial Note
+                </p>
+                <p className="mt-5 text-lg leading-8 text-white/78 md:text-2xl md:leading-10">
+                  The point is not inspiration as spectacle. The point is making repetition look
+                  intentional, then letting the results speak with quiet force.
+                </p>
+              </section>
 
-        {/* ─── Story Cards ─── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '28px', marginBottom: '80px' }}>
-          {stories.map((story, idx) => (
-            <div key={story.id} className="story-card" style={{
-              backgroundColor: 'rgba(12,10,30,0.65)',
-              border: '1px solid rgba(160,120,255,0.18)',
-              padding: '36px 32px',
-              borderRadius: '20px',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              position: 'relative',
-              overflow: 'hidden',
-              animation: `cardGlow ${5 + idx}s ease-in-out infinite`,
-            }}>
-              {/* Top glow line */}
-              <div style={{
-                position: 'absolute', top: 0, left: '20%', right: '20%', height: '1px',
-                background: 'linear-gradient(90deg, transparent, rgba(180,140,255,0.6), transparent)',
-              }} />
-              {/* Corner shimmer */}
-              <div style={{
-                position: 'absolute', top: '-40px', right: '-40px',
-                width: '100px', height: '100px', borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(140,100,255,0.15), transparent 70%)',
-              }} />
+              <section className="grid gap-4 lg:grid-cols-3">
+                {CLOSING_QUOTES.map((quote) => (
+                  <article
+                    key={quote}
+                    className="rounded-[1.7rem] border border-white/10 bg-white/6 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+                  >
+                    <div className="text-3xl leading-none text-white/24">&quot;</div>
+                    <p className="mt-3 text-base leading-7 text-white/74">
+                      {quote}
+                    </p>
+                  </article>
+                ))}
+              </section>
 
-              <div style={{ fontSize: '2rem', marginBottom: '16px' }}>{story.planet}</div>
-              <h3 style={{
-                fontSize: '0.95rem', fontWeight: '700', textTransform: 'uppercase',
-                letterSpacing: '0.1em', marginBottom: '16px',
-                color: 'rgba(220,200,255,0.95)',
-              }}>{story.title}</h3>
-              <p style={{
-                fontSize: '1rem', lineHeight: '1.75', color: 'rgba(190,185,210,0.85)',
-                marginBottom: '28px', fontStyle: 'italic',
-                fontWeight: '300',
-              }}>{story.content}</p>
-              <div style={{
-                fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase',
-                letterSpacing: '0.12em', color: 'rgba(200,170,255,0.9)',
-                borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '18px',
-              }}>— {story.author}</div>
+              <section className="max-w-4xl rounded-[2.2rem] border border-cyan-200/12 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_34px_120px_rgba(0,0,0,0.5)] backdrop-blur-2xl md:p-10">
+                <p className="text-[0.68rem] uppercase tracking-[0.44em] text-cyan-100/52">
+                  Final Frame
+                </p>
+                <h2 className="mt-4 max-w-3xl font-display text-3xl uppercase tracking-[0.1em] text-white md:text-5xl">
+                  Build work that still looks sharp after the motion stops
+                </h2>
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-white/66 md:text-base">
+                  The last frame stays. The question is whether the process behind it was solid
+                  enough to deserve staying on screen.
+                </p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <div className="rounded-full border border-white/14 bg-black/34 px-5 py-3 text-[0.72rem] uppercase tracking-[0.32em] text-white/72">
+                    Systems First
+                  </div>
+                  <div className="rounded-full border border-white/14 bg-black/34 px-5 py-3 text-[0.72rem] uppercase tracking-[0.32em] text-white/72">
+                    Taste With Standards
+                  </div>
+                  <div className="rounded-full border border-white/14 bg-black/34 px-5 py-3 text-[0.72rem] uppercase tracking-[0.32em] text-white/72">
+                    Motion With Intent
+                  </div>
+                </div>
+              </section>
             </div>
-          ))}
+
+            <aside className="top-24 hidden lg:sticky lg:block">
+              <div className="rounded-[2rem] border border-white/10 bg-black/36 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+                <p className="text-[0.62rem] uppercase tracking-[0.42em] text-white/40">
+                  Scroll Index
+                </p>
+                <div className="mt-6 space-y-4">
+                  {STORY_TIMELINE.map((item) => (
+                    <div
+                      key={item.step}
+                      className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-display text-xl uppercase tracking-[0.12em] text-white">
+                          {item.step}
+                        </p>
+                        <div className="h-px flex-1 bg-gradient-to-r from-white/25 to-transparent" />
+                      </div>
+                      <p className="mt-3 text-[0.7rem] uppercase tracking-[0.28em] text-white/42">
+                        {item.label}
+                      </p>
+                      <p className="mt-3 text-sm leading-6 text-white/56">
+                        {item.detail}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 rounded-[1.4rem] border border-cyan-300/14 bg-cyan-300/6 p-4">
+                  <p className="text-[0.62rem] uppercase tracking-[0.38em] text-cyan-100/48">
+                    Motion
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-white/66">
+                    Scroll down to advance the sequence. Scroll up to reverse it. The final frame
+                    locks at the end of the section.
+                  </p>
+                </div>
+                <div className="mt-6 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+                  <p className="text-[0.62rem] uppercase tracking-[0.38em] text-white/42">
+                    Reading Mode
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-white/60">
+                    This page is built as a layered editorial surface: cinematic motion behind,
+                    structured proof in front.
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
 
-        {/* ─── Submission Form ─── */}
-        <div style={{
-          backgroundColor: 'rgba(10,8,28,0.7)',
-          border: '1px solid rgba(160,120,255,0.2)',
-          padding: '52px 48px',
-          borderRadius: '24px',
-          maxWidth: '580px',
-          margin: '0 auto',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(60,20,120,0.15)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Top decorative glow line */}
-          <div style={{
-            position: 'absolute', top: 0, left: '15%', right: '15%', height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(180,140,255,0.7), transparent)',
-          }} />
-          {/* Background nebula inside form */}
-          <div style={{
-            position: 'absolute', top: '-50px', right: '-50px',
-            width: '200px', height: '200px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(80,40,160,0.2), transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-
-          <div style={{ textAlign: 'center', marginBottom: '36px', position: 'relative' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🛸</div>
-            <h2 style={{
-              fontSize: '1.4rem', fontWeight: '700', textTransform: 'uppercase',
-              letterSpacing: '0.1em', marginBottom: '10px', color: '#e0d0ff',
-            }}>
-              Add Your Star to the Sky
-            </h2>
-            <p style={{ color: 'rgba(170,160,190,0.75)', fontSize: '0.9rem', letterSpacing: '0.02em' }}>
-              Share your magical journey with the universe.
+        <div className="mx-auto w-full max-w-7xl px-4 pb-24 md:px-8 lg:hidden">
+          <div className="rounded-[1.8rem] border border-white/10 bg-black/40 p-5 backdrop-blur-xl">
+            <p className="text-[0.62rem] uppercase tracking-[0.42em] text-white/40">
+              Scroll Index
             </p>
+            <div className="mt-5 grid gap-3">
+              {STORY_TIMELINE.map((item) => (
+                <div
+                  key={item.step}
+                  className="rounded-[1.2rem] border border-white/10 bg-white/6 p-4"
+                >
+                  <p className="font-display text-lg uppercase tracking-[0.12em] text-white">
+                    {item.step} {item.label}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-white/56">
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-
-          <form style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
-            <input
-              type="text"
-              placeholder="YOUR NAME"
-              className="cosmic-input"
-              style={{
-                width: '100%', backgroundColor: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(160,120,255,0.25)', color: '#ffffff',
-                padding: '15px 18px', borderRadius: '12px',
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                outline: 'none', fontSize: '0.85rem',
-                transition: 'all 0.3s ease', boxSizing: 'border-box',
-              }}
-            />
-            <textarea
-              placeholder="YOUR EXPERIENCE..."
-              rows="4"
-              className="cosmic-input"
-              style={{
-                width: '100%', backgroundColor: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(160,120,255,0.25)', color: '#ffffff',
-                padding: '15px 18px', borderRadius: '12px',
-                resize: 'vertical', outline: 'none', fontSize: '0.9rem',
-                lineHeight: '1.6', transition: 'all 0.3s ease',
-                boxSizing: 'border-box', fontFamily: 'inherit',
-              }}
-            />
-            <button
-              type="button"
-              className="submit-btn"
-              style={{
-                padding: '16px 32px',
-                background: 'linear-gradient(135deg, #5a20b0 0%, #7c3aed 50%, #4a18a0 100%)',
-                color: '#ffffff', fontWeight: '700',
-                textTransform: 'uppercase', letterSpacing: '0.15em',
-                borderRadius: '12px', cursor: 'pointer', border: 'none',
-                width: '100%', fontSize: '0.85rem',
-                boxShadow: '0 6px 20px rgba(100,60,220,0.45)',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              Send Transmission &nbsp;🚀
-            </button>
-          </form>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
