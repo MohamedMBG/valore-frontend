@@ -9,12 +9,12 @@ import axios from 'axios';
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const orderId = searchParams.get('orderId');
   const { data: session } = useSession();
   const [status, setStatus] = useState('processing');
 
   useEffect(() => {
-    if (!sessionId || !session) {
+    if (!orderId || !session) {
       return;
     }
 
@@ -22,9 +22,10 @@ function CheckoutSuccessContent() {
 
     const run = async () => {
       try {
+        // The backend completes fake checkout by order id, not by session token.
         await axios.post(
-          'http://localhost:8080/api/stripe/complete-order',
-          { session_id: sessionId },
+          `http://localhost:8080/api/stripe/complete-order?orderId=${orderId}`,
+          null,
           { headers: { Authorization: `Bearer ${session.accessToken}` } }
         );
         if (isActive) {
@@ -43,7 +44,7 @@ function CheckoutSuccessContent() {
     return () => {
       isActive = false;
     };
-  }, [session, sessionId]);
+  }, [orderId, session]);
 
   return (
     <div className="pt-32 pb-24 min-h-screen flex items-center justify-center">

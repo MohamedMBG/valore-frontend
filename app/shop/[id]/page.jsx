@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useContext, useEffect } from 'react';
+import { useContext, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ProductContext } from '@/context/ProductContext';
 import { Star, CheckCircle, ArrowLeft, Download } from 'lucide-react';
@@ -12,43 +12,39 @@ export default function ProductDetails() {
   const { id } = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const { products } = useContext(ProductContext);
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { products, loading } = useContext(ProductContext);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-
-  useEffect(() => {
-    if (products.length > 0) {
-      const found = products.find(p => p.id.toString() === id);
-      setProduct(found);
-      setLoading(false);
-    }
-  }, [id, products]);
+  // The detail page can derive the product directly from the shared product list.
+  const product = products.find((item) => item.id.toString() === id);
 
   const handleCheckout = async () => {
     if (!session) {
       router.push('/login?callbackUrl=' + encodeURIComponent(window.location.href));
       return;
     }
-    
+
     try {
       setCheckoutLoading(true);
       const res = await axios.post(
-        'http://localhost:8080/api/stripe/create-checkout-session', 
-        { 
-          productIds: [product.id],
-          successUrl: window.location.origin + '/checkout/success',
-          cancelUrl: window.location.origin + '/shop/' + product.id
+        'http://localhost:8080/api/stripe/create-checkout-session',
+        {
+          // The backend checkout contract expects explicit items and quantities.
+          items: [{ productId: product.id, quantity: 1 }],
         },
         {
           headers: {
-            Authorization: `Bearer ${session.accessToken}`
-          }
+            Authorization: `Bearer ${session.accessToken}`,
+          },
         }
       );
-      if (res.data.url) {
-        window.location.href = res.data.url;
+
+      // This MVP uses a fake checkout, so we jump straight to the success page.
+      if (res.data?.orderId) {
+        router.push(`/checkout/success?orderId=${res.data.orderId}`);
+        return;
       }
+
+      throw new Error('Missing orderId in checkout response');
     } catch (error) {
       console.error('Checkout error:', error);
       alert("Une erreur est survenue lors de l'initialisation du paiement.");
