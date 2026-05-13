@@ -1,21 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 
-export default function Login() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  
+
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     firstname: '',
-    lastname: ''
+    lastname: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,16 +38,14 @@ export default function Login() {
         router.push(callbackUrl);
       }
     } else {
-      // Manual registration call
       try {
         const res = await fetch('http://localhost:8080/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(formData),
         });
-        
+
         if (res.ok) {
-          // Immediately login
           const loginRes = await signIn('credentials', {
             redirect: false,
             email: formData.email,
@@ -58,10 +55,10 @@ export default function Login() {
             router.push(callbackUrl);
           }
         } else {
-          setError("Registration failed. This email may already be in use.");
+          setError('Registration failed. This email may already be in use.');
         }
-      } catch (err) {
-        setError("Server error.");
+      } catch {
+        setError('Server error.');
       } finally {
         setLoading(false);
       }
@@ -91,68 +88,87 @@ export default function Login() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">First Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light" 
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light"
                   value={formData.firstname}
-                  onChange={e => setFormData({...formData, firstname: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Last Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light" 
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light"
                   value={formData.lastname}
-                  onChange={e => setFormData({...formData, lastname: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
                 />
               </div>
             </div>
           )}
           <div>
             <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Email</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               required
-              className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light" 
+              className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light"
               value={formData.email}
-              onChange={e => setFormData({...formData, email: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
           <div>
             <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Password</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               required
-              className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light" 
+              className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-primary-light"
               value={formData.password}
-              onChange={e => setFormData({...formData, password: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="w-full bg-white text-black py-4 mt-4 uppercase font-bold tracking-widest hover:bg-zinc-200 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Please wait...' : (isLogin ? 'Login' : "Sign Up")}
+            {loading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
           </button>
         </form>
 
         <div className="mt-8 text-center border-t border-zinc-800 pt-6">
           <p className="text-zinc-500 text-sm">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}
-            <button 
+            {isLogin ? "Don't have an account?" : 'Already have an account?'}
+            <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-white hover:text-primary-light ml-2 font-semibold transition-colors"
             >
-              {isLogin ? "Sign Up" : "Login"}
+              {isLogin ? 'Sign Up' : 'Login'}
             </button>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <div className="min-h-screen pt-32 pb-24 flex items-center justify-center">
+      <div className="w-full max-w-md bg-zinc-900/50 p-8 border border-zinc-800 backdrop-blur text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary-light mx-auto mb-6"></div>
+        <p className="text-zinc-400">Loading login...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginContent />
+    </Suspense>
   );
 }
