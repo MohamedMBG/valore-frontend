@@ -3,12 +3,20 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Download, Package, Settings, LogOut } from 'lucide-react';
+import { Package, Settings } from 'lucide-react';
+import { getMyOrders, getMyProfile, updateMyProfile } from '@/services/api';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('orders');
+  const [orders, setOrders] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [formData, setFormData] = useState({ firstname: '', lastname: '' });
+  const [pageLoading, setPageLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -16,88 +24,209 @@ export default function Dashboard() {
     }
   }, [status, router]);
 
-  if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary-light"></div></div>;
+  useEffect(() => {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    let isActive = true;
+
+    const loadDashboardData = async () => {
+      try {
+        setPageLoading(true);
+        setError('');
+
+        // Orders and profile are loaded together because both are needed for the dashboard.
+        const [ordersData, profileData] = await Promise.all([
+          getMyOrders(session.accessToken),
+          getMyProfile(session.accessToken),
+        ]);
+
+        if (!isActive) {
+          return;
+        }
+
+        setOrders(ordersData);
+        setProfile(profileData);
+        setFormData({
+          firstname: profileData.firstname || '',
+          lastname: profileData.lastname || '',
+        });
+      } catch (loadError) {
+        if (isActive) {
+          setError('Impossible de charger le dashboard pour le moment.');
+        }
+      } finally {
+        if (isActive) {
+          setPageLoading(false);
+        }
+      }
+    };
+
+    loadDashboardData();
+
+    return () => {
+      isActive = false;
+    };
+  }, [session]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!session?.accessToken) {
+      return;
+    }
+
+    try {
+      setSaveLoading(true);
+      setError('');
+      setSuccessMessage('');
+
+      // The backend only allows first name and last name updates.
+      const updatedProfile = await updateMyProfile(session.accessToken, formData);
+      setProfile(updatedProfile);
+      setFormData({
+        firstname: updatedProfile.firstname || '',
+        lastname: updatedProfile.lastname || '',
+      });
+      setSuccessMessage('Profil mis a jour.');
+    } catch (saveError) {
+      setError('La mise a jour du profil a echoue.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  if (status === 'loading' || pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary-light"></div>
+      </div>
+    );
   }
 
-  if (!session) return null;
+  if (!session || !profile) {
+    return null;
+  }
 
   return (
     <div className="pt-32 pb-24 min-h-screen flex container mx-auto px-6 gap-12 flex-col md:flex-row">
-      {/* Sidebar */}
       <div className="w-full md:w-64 shrink-0">
         <div className="bg-zinc-900/50 border border-zinc-800 p-6 sticky top-32">
           <div className="mb-8">
-            <p className="text-zinc-400 text-xs uppercase tracking-widest mb-1">Connecté en tant que</p>
-            <h2 className="font-display text-xl font-bold text-white">{session.user.firstname} {session.user.lastname}</h2>
-            <p className="text-sm text-zinc-500 mt-1">{session.user.email}</p>
+            <p className="text-zinc-400 text-xs uppercase tracking-widest mb-1">Connecte en tant que</p>
+            <h2 className="font-display text-xl font-bold text-white">{profile.firstname} {profile.lastname}</h2>
+            <p className="text-sm text-zinc-500 mt-1">{profile.email}</p>
           </div>
 
           <nav className="space-y-2">
-            <button 
+            <button
               onClick={() => setActiveTab('orders')}
               className={`w-full flex items-center px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'orders' ? 'bg-primary-light/10 text-primary-light border-l-2 border-primary-light' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50 border-l-2 border-transparent'}`}
             >
               <Package className="w-4 h-4 mr-3" /> Mes Achats
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('settings')}
               className={`w-full flex items-center px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-primary-light/10 text-primary-light border-l-2 border-primary-light' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50 border-l-2 border-transparent'}`}
             >
-              <Settings className="w-4 h-4 mr-3" /> Paramètres
+              <Settings className="w-4 h-4 mr-3" /> Parametres
             </button>
           </nav>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-grow">
+        {error && (
+          <div className="mb-6 bg-red-500/10 border border-red-500/40 text-red-400 px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-6 bg-green-500/10 border border-green-500/40 text-green-400 px-4 py-3 text-sm">
+            {successMessage}
+          </div>
+        )}
+
         {activeTab === 'orders' && (
           <div>
-            <h1 className="font-display text-3xl font-bold text-white mb-8 border-b border-zinc-900 pb-4">Mes Achats & Téléchargements</h1>
-            
-            {/* Dummy Order List */}
-            <div className="space-y-6">
-              {[1, 2].map(order => (
-                <div key={order} className="bg-zinc-900/50 border border-zinc-800 p-6 flex flex-col md:flex-row items-center gap-6">
-                  <div className="w-24 h-24 bg-zinc-950 shrink-0">
-                    <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200&q=80" alt="Cover" className="w-full h-full object-cover" />
+            <h1 className="font-display text-3xl font-bold text-white mb-8 border-b border-zinc-900 pb-4">Mes Achats</h1>
+
+            {orders.length === 0 ? (
+              <div className="bg-zinc-900/50 border border-zinc-800 p-8 text-zinc-500">
+                Aucune commande pour le moment.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-zinc-900/50 border border-zinc-800 p-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-800 pb-4 mb-4">
+                      <div>
+                        <span className="text-xs text-zinc-500 uppercase tracking-widest">Commande #{order.id}</span>
+                        <p className="text-sm text-zinc-400 mt-2">Statut: {order.status}</p>
+                      </div>
+                      <p className="text-white font-bold text-lg">{order.totalAmount} EUR</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      {order.items.map((item) => (
+                        <div key={`${order.id}-${item.productId}`} className="flex items-center justify-between gap-4 text-sm">
+                          <div>
+                            <p className="text-white font-medium">{item.productTitle}</p>
+                            <p className="text-zinc-500">Quantite: {item.quantity}</p>
+                          </div>
+                          <p className="text-zinc-300">{item.priceAtPurchase} EUR</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex-grow text-center md:text-left">
-                    <span className="text-xs text-zinc-500 uppercase tracking-widest">Commande #VAL-{order}094</span>
-                    <h3 className="font-display text-xl font-bold text-white mt-1 mb-2">The Ultimate Creator Guide</h3>
-                    <p className="text-primary-light font-medium text-sm">Accès illimité</p>
-                  </div>
-                  <button className="flex items-center px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-colors shrink-0">
-                    <Download className="w-4 h-4 mr-2" /> Télécharger
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'settings' && (
           <div>
-            <h1 className="font-display text-3xl font-bold text-white mb-8 border-b border-zinc-900 pb-4">Paramètres du profil</h1>
+            <h1 className="font-display text-3xl font-bold text-white mb-8 border-b border-zinc-900 pb-4">Parametres du profil</h1>
             <div className="max-w-xl">
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Email</label>
-                  <input type="email" disabled value={session.user.email} className="w-full bg-zinc-950/50 border border-zinc-800 text-zinc-500 p-4 cursor-not-allowed" />
+                  <input
+                    type="email"
+                    disabled
+                    value={profile.email}
+                    className="w-full bg-zinc-950/50 border border-zinc-800 text-zinc-500 p-4 cursor-not-allowed"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Prénom</label>
-                    <input type="text" defaultValue={session.user.firstname} className="w-full bg-zinc-950 border border-zinc-800 text-white p-4 focus:outline-none focus:border-primary-light" />
+                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Prenom</label>
+                    <input
+                      type="text"
+                      value={formData.firstname}
+                      onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-800 text-white p-4 focus:outline-none focus:border-primary-light"
+                    />
                   </div>
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Nom</label>
-                    <input type="text" defaultValue={session.user.lastname} className="w-full bg-zinc-950 border border-zinc-800 text-white p-4 focus:outline-none focus:border-primary-light" />
+                    <input
+                      type="text"
+                      value={formData.lastname}
+                      onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-800 text-white p-4 focus:outline-none focus:border-primary-light"
+                    />
                   </div>
                 </div>
-                <button type="submit" className="border border-zinc-700 text-white px-8 py-3 uppercase text-xs font-bold tracking-widest hover:bg-zinc-800 transition-colors">
-                  Enregistrer les modifications
+                <button
+                  type="submit"
+                  disabled={saveLoading}
+                  className="border border-zinc-700 text-white px-8 py-3 uppercase text-xs font-bold tracking-widest hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                >
+                  {saveLoading ? 'Enregistrement...' : 'Enregistrer les modifications'}
                 </button>
               </form>
             </div>
