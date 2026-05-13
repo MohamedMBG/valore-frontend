@@ -111,7 +111,7 @@ const getAuthHeaders = (token) => ({
 
 // Dashboard helpers use the real backend API instead of local mock state.
 export const getMyOrders = async (token) => {
-    const res = await fetch(`${API_BASE_URL}/orders/my`, {
+    const res = await fetch(`${API_BASE_URL}/users/me/orders`, {
         headers: getAuthHeaders(token)
     });
     if (!res.ok) throw new Error("Failed to fetch orders");
@@ -134,4 +134,47 @@ export const updateMyProfile = async (token, profileData) => {
     });
     if (!res.ok) throw new Error("Failed to update profile");
     return await res.json();
+};
+
+// Admin helpers keep the business dashboard wired to the real backend APIs.
+export const getAdminStats = async (token) => {
+    const res = await fetch(`${API_BASE_URL}/admin/stats`, {
+        headers: getAuthHeaders(token)
+    });
+    if (!res.ok) throw new Error("Failed to fetch admin stats");
+    return await res.json();
+};
+
+export const getAdminProducts = async () => {
+    const res = await fetch(`${API_BASE_URL}/products`);
+    if (!res.ok) throw new Error("Failed to fetch products");
+    return await res.json();
+};
+
+export const createAdminProduct = async (token, productData) => {
+    const res = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(productData)
+    });
+    if (!res.ok) throw new Error("Failed to create product");
+    return await res.json();
+};
+
+export const updateAdminProduct = async (token, productId, productData) => {
+    const res = await fetch(`${API_BASE_URL}/products/${productId}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(productData)
+    });
+    if (!res.ok) throw new Error("Failed to update product");
+    return await res.json();
+};
+
+export const deleteAdminProduct = async (token, productId) => {
+    const res = await fetch(`${API_BASE_URL}/products/${productId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+    });
+    if (!res.ok) throw new Error("Failed to delete product");
 };

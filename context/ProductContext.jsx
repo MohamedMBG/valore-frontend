@@ -2,6 +2,7 @@
 
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '@/services/api';
 
 export const ProductContext = createContext();
 
@@ -17,15 +18,13 @@ export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchProducts = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       // Fallback for when backend is not running yet
-      const res = await axios.get('http://localhost:8080/api/products').catch(() => ({ data: [
+      const res = await axios.get(`${API_BASE_URL}/products`).catch(() => ({ data: [
         { id: 1, title: 'The Ultimate Creator Guide', price: 29.99, category: 'Guide PDF', imageUrl: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80', rating: 5, reviews: 120, description: "A complete 50-page PDF guide that teaches you how to hack the TikTok algorithm." },
         { id: 2, title: 'Cinematic LUTs Pack', price: 49.99, category: 'Templates', imageUrl: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800&q=80', rating: 4.8, reviews: 85, description: "10 exclusive LUTs to give a cinematic look to your videos." },
         { id: 3, title: 'TikTok Virality Masterclass', price: 99.99, category: 'Mini-Course', imageUrl: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=800&q=80', rating: 4.9, reviews: 200, description: "A 2-hour video training to go from 0 to 100k followers." },
@@ -39,6 +38,14 @@ export const ProductProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void fetchProducts(false);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const addProduct = (product) => {
     const newProduct = { ...product, id: Date.now() };

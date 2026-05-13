@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { Menu, X, ShoppingBag, User } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -23,7 +23,6 @@ export default function Navbar() {
     { href: '/studio', label: 'Studio' },
     { href: '/stories', label: 'Stories' },
     { href: '/battle', label: 'Battle' },
-    { href: '/#showcase', label: 'Showcase' },
   ];
 
   return (
@@ -70,9 +69,6 @@ export default function Navbar() {
                 Login
               </Link>
             )}
-            <Link href="/cart" className="text-[#A1A1AA] hover:text-[#7C3AED] transition-colors relative glow-text-hover">
-              <ShoppingBag className="w-5 h-5" />
-            </Link>
           </div>
         </div>
 

@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { API_BASE_URL } from '@/services/api';
 
 function LoginContent() {
   const router = useRouter();
@@ -39,7 +40,7 @@ function LoginContent() {
       }
     } else {
       try {
-        const res = await fetch('http://localhost:8080/api/auth/register', {
+        const res = await fetch(`${API_BASE_URL}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),

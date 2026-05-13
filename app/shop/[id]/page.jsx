@@ -7,6 +7,7 @@ import { Star, CheckCircle, ArrowLeft, Download } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
+import { API_BASE_URL } from '@/services/api';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -26,7 +27,7 @@ export default function ProductDetails() {
     try {
       setCheckoutLoading(true);
       const res = await axios.post(
-        'http://localhost:8080/api/stripe/create-checkout-session',
+        `${API_BASE_URL}/stripe/create-checkout-session`,
         {
           // The backend checkout contract expects explicit items and quantities.
           items: [{ productId: product.id, quantity: 1 }],
@@ -38,9 +39,15 @@ export default function ProductDetails() {
         }
       );
 
-      // This MVP uses a fake checkout, so we jump straight to the success page.
+      // Create the order first, then move the user to the simulated payment form.
       if (res.data?.orderId) {
-        router.push(`/checkout/success?orderId=${res.data.orderId}`);
+        const checkoutQuery = new URLSearchParams({
+          orderId: String(res.data.orderId),
+          title: product.title,
+          category: product.category || 'Digital Access',
+          price: product.price.toFixed(2),
+        });
+        router.push(`/checkout?${checkoutQuery.toString()}`);
         return;
       }
 

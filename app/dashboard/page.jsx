@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [formData, setFormData] = useState({ firstname: '', lastname: '' });
   const [pageLoading, setPageLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -34,24 +36,41 @@ export default function Dashboard() {
     const loadDashboardData = async () => {
       try {
         setPageLoading(true);
+        setOrdersLoading(true);
         setError('');
+        setOrdersError('');
 
-        // Orders and profile are loaded together because both are needed for the dashboard.
-        const [ordersData, profileData] = await Promise.all([
-          getMyOrders(session.accessToken),
-          getMyProfile(session.accessToken),
-        ]);
+        // Profile and orders are loaded separately so one failing request does not blank the whole dashboard.
+        const profileData = await getMyProfile(session.accessToken);
 
         if (!isActive) {
           return;
         }
 
-        setOrders(ordersData);
         setProfile(profileData);
         setFormData({
           firstname: profileData.firstname || '',
           lastname: profileData.lastname || '',
         });
+
+        try {
+          const ordersData = await getMyOrders(session.accessToken);
+
+          if (!isActive) {
+            return;
+          }
+
+          setOrders(ordersData);
+        } catch (ordersLoadError) {
+          if (isActive) {
+            setOrders([]);
+            setOrdersError('Les commandes ne peuvent pas etre chargees pour le moment.');
+          }
+        } finally {
+          if (isActive) {
+            setOrdersLoading(false);
+          }
+        }
       } catch (loadError) {
         if (isActive) {
           setError('Impossible de charger le dashboard pour le moment.');
@@ -105,7 +124,11 @@ export default function Dashboard() {
     );
   }
 
-  if (!session || !profile) {
+  if (!session) {
+    return null;
+  }
+
+  if (!profile) {
     return null;
   }
 
@@ -153,7 +176,17 @@ export default function Dashboard() {
           <div>
             <h1 className="font-display text-3xl font-bold text-white mb-8 border-b border-zinc-900 pb-4">Mes Achats</h1>
 
-            {orders.length === 0 ? (
+            {ordersError && (
+              <div className="mb-6 bg-amber-500/10 border border-amber-500/40 text-amber-300 px-4 py-3 text-sm">
+                {ordersError}
+              </div>
+            )}
+
+            {ordersLoading ? (
+              <div className="bg-zinc-900/50 border border-zinc-800 p-8 text-zinc-500">
+                Chargement des commandes...
+              </div>
+            ) : orders.length === 0 ? (
               <div className="bg-zinc-900/50 border border-zinc-800 p-8 text-zinc-500">
                 Aucune commande pour le moment.
               </div>

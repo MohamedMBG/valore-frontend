@@ -2,6 +2,8 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -12,15 +14,18 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const res = await axios.post('http://localhost:8080/api/auth/authenticate', {
+          const res = await axios.post(`${API_BASE_URL}/auth/authenticate`, {
             email: credentials.email,
             password: credentials.password
           });
           if (res.data && res.data.token) {
-            return res.data;
+            return {
+              ...res.data,
+              email: credentials.email,
+            };
           }
           return null;
-        } catch (error) {
+        } catch {
           throw new Error('Invalid email or password');
         }
       }
@@ -33,6 +38,7 @@ const handler = NextAuth({
         token.role = user.role;
         token.firstname = user.firstname;
         token.lastname = user.lastname;
+        token.email = user.email;
       }
       return token;
     },
@@ -41,6 +47,7 @@ const handler = NextAuth({
       session.user.role = token.role;
       session.user.firstname = token.firstname;
       session.user.lastname = token.lastname;
+      session.user.email = token.email;
       return session;
     }
   },
@@ -50,7 +57,7 @@ const handler = NextAuth({
   session: {
     strategy: 'jwt'
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-dev',
+  secret: process.env.NEXTAUTH_SECRET,
 });
 
 export { handler as GET, handler as POST };
