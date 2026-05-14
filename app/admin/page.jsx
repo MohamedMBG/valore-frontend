@@ -7,6 +7,7 @@ import { LayoutDashboard, PackageSearch, Tag, Plus, Pencil, Trash2, BarChart3, U
 import {
   createAdminProduct,
   deleteAdminProduct,
+  getAdminOrders,
   getAdminProducts,
   getAdminStats,
   updateAdminProduct,
@@ -28,6 +29,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [pageLoading, setPageLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -56,9 +58,10 @@ export default function AdminDashboard() {
         setPageLoading(true);
         setError('');
 
-        // The admin dashboard only needs one stats payload and the current product list.
-        const [statsData, productsData] = await Promise.all([
+        // Keep the admin dashboard simple: load stats, orders, and the current product list together.
+        const [statsData, ordersData, productsData] = await Promise.all([
           getAdminStats(session.accessToken),
+          getAdminOrders(session.accessToken),
           getAdminProducts(),
         ]);
 
@@ -67,6 +70,7 @@ export default function AdminDashboard() {
         }
 
         setStats(statsData);
+        setOrders(ordersData);
         setProducts(productsData);
       } catch (loadError) {
         if (isActive) {
@@ -313,6 +317,71 @@ export default function AdminDashboard() {
                 <p className="text-sm text-zinc-500">
                   Pour suivre les visiteurs, il faudra ajouter une source d&apos;analytics ou des evenements de navigation.
                 </p>
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 overflow-hidden">
+              <div className="p-6 border-b border-zinc-800">
+                <h2 className="font-display text-xl text-white">Achats recents</h2>
+                <p className="text-sm text-zinc-500 mt-2">
+                  Cette table confirme les achats enregistres avec client, statut, total et produits.
+                </p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-zinc-950 text-zinc-400 uppercase tracking-widest text-xs">
+                    <tr>
+                      <th className="p-4 font-medium">Commande</th>
+                      <th className="p-4 font-medium">Client</th>
+                      <th className="p-4 font-medium">Statut</th>
+                      <th className="p-4 font-medium">Produits</th>
+                      <th className="p-4 font-medium">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-zinc-300 divide-y divide-zinc-800">
+                    {orders.map((order) => (
+                      <tr key={order.id}>
+                        <td className="p-4">
+                          <p className="font-medium text-white">#{order.id}</p>
+                          <p className="text-zinc-500 text-xs mt-1">
+                            {new Date(order.createdAt).toLocaleString('fr-FR')}
+                          </p>
+                        </td>
+                        <td className="p-4">{order.customerEmail}</td>
+                        <td className="p-4">
+                          <span className={`text-xs font-bold uppercase tracking-widest ${
+                            order.status === 'COMPLETED'
+                              ? 'text-green-400'
+                              : order.status === 'PENDING'
+                                ? 'text-yellow-400'
+                                : 'text-red-400'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="space-y-1">
+                            {order.items.map((item) => (
+                              <p key={`${order.id}-${item.productId}`} className="text-zinc-400 text-xs">
+                                {item.productTitle} x{item.quantity}
+                              </p>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-4 text-white font-medium">{order.totalAmount} EUR</td>
+                      </tr>
+                    ))}
+
+                    {orders.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="p-8 text-center text-zinc-500">
+                          Aucune commande enregistree pour le moment.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

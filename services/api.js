@@ -72,6 +72,14 @@ export const getAdminStats = async (token) => {
     return await res.json();
 };
 
+export const getAdminOrders = async (token) => {
+    const res = await fetch(`${API_BASE_URL}/admin/orders`, {
+        headers: getAuthHeaders(token)
+    });
+    if (!res.ok) throw new Error("Failed to fetch admin orders");
+    return await res.json();
+};
+
 export const getAdminProducts = async () => {
     const res = await fetch(`${API_BASE_URL}/products`);
     if (!res.ok) throw new Error("Failed to fetch products");
