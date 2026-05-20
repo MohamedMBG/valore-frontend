@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Star, Video, Download } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import CinematicDivider from '@/components/CinematicDivider';
 import ShowcaseSection from '@/components/ShowcaseSection';
+import NewsletterForm from '@/components/NewsletterForm';
 
 // Dummy data for products featured
 const featuredProducts = [
@@ -18,10 +20,13 @@ export default function Home() {
       <section className="relative h-screen flex glow-line-bottom overflow-hidden pt-20">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-[#0A0A0A]/80 md:bg-[#0A0A0A]/70 z-10" />
-          <img 
-            src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=1600&q=80" 
-            alt="Creative Studio" 
-            className="w-full h-full object-cover filter grayscale opacity-30"
+          <Image
+            src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=1600&q=80"
+            alt="Creative Studio"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover grayscale opacity-30"
           />
         </div>
         
@@ -60,11 +65,12 @@ export default function Home() {
         <div className="container mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <div className="relative stitch-border luxury-card p-2 md:p-4">
             <div className="aspect-[4/5] bg-black overflow-hidden relative rounded-lg">
-              {/* Fallback image */}
-              <img 
-                src="https://images.unsplash.com/photo-1552168324-d612d77725e3?w=800&q=80" 
-                alt="Creator @drogow" 
-                className="w-full h-full object-cover filter hover:brightness-110 transition-all duration-700" 
+              <Image
+                src="https://images.unsplash.com/photo-1552168324-d612d77725e3?w=800&q=80"
+                alt="Creator @drogow"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover hover:brightness-110 transition-all duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             </div>
@@ -165,20 +171,7 @@ export default function Home() {
           <p className="text-[#A1A1AA] mb-10 text-lg">
             Subscribe to the newsletter to receive exclusive tips on content creation, Veloir offers, and secret coupons.
           </p>
-          <form className="flex flex-col sm:flex-row gap-4 justify-center">
-            <input 
-              type="email" 
-              placeholder="votre@email.com" 
-              className="px-6 py-4 bg-[#000000] border border-[#7C3AED]/30 text-white placeholder-zinc-600 w-full sm:w-96 focus:outline-none focus:border-[#00D1FF] transition-colors rounded-md shadow-[inset_0_0_10px_rgba(124,58,237,0.1)]"
-              required
-            />
-            <button 
-              type="submit" 
-              className="px-8 py-4 luxury-btn font-bold uppercase tracking-widest whitespace-nowrap"
-            >
-              Subscribe
-            </button>
-          </form>
+          <NewsletterForm />
         </div>
       </section>
 

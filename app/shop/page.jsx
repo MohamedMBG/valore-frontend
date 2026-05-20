@@ -35,8 +35,8 @@ export default function Shop() {
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
                 className={`px-4 py-2 text-sm uppercase tracking-wider whitespace-nowrap transition-colors ${
-                  categoryFilter === cat 
-                    ? 'bg-white text-black font-semibold' 
+                  categoryFilter === cat
+                    ? 'bg-[#7C3AED] text-white font-semibold'
                     : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'
                 }`}
               >

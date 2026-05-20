@@ -6,25 +6,29 @@ module.exports = {
     "./sections/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '1.5rem',
+    },
     extend: {
       colors: {
         background: "#0a0a0a",
         foreground: "#ededed",
         primary: {
-          DEFAULT: "#8b5cf6", // Purple accent
-          dark: "#7c3aed",
-          light: "#a78bfa"
+          DEFAULT: "#7C3AED", // single source of truth — matches CSS var --neon-purple
+          dark: "#6D28D9",
+          light: "#A78BFA"
         },
         gold: {
-          DEFAULT: "#d4af37", // Gold accent substitute
+          DEFAULT: "#d4af37",
           dark: "#b8972e",
         },
         surface: "#171717",
         border: "#262626"
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        display: ['var(--font-space-grotesk)', 'sans-serif'],
+        sans: ['var(--font-outfit)', 'sans-serif'],
+        display: ['var(--font-bebas-neue)', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',

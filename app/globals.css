@@ -12,9 +12,9 @@
   --color-foreground: var(--foreground);
   --color-primary-neon: var(--neon-purple);
   --color-secondary-neon: var(--neon-blue);
-  --color-primary-light: var(--neon-purple); /* For backwards compat in the project */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --color-primary-light: #A78BFA;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bebas-neue), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -22,7 +22,10 @@
     background-color: var(--background);
     color: var(--foreground);
     @apply font-sans antialiased;
-    selection-background-color: rgba(124, 58, 237, 0.3);
+  }
+
+  ::selection {
+    background-color: rgba(124, 58, 237, 0.3);
   }
 }
 
@@ -141,6 +144,30 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--neon-purple);
 }
+
+:focus-visible {
+  outline: 2px solid var(--neon-purple);
+  outline-offset: 2px;
+}
+/* Marquee keyframes — moved here from ShowcaseSection dangerouslySetInnerHTML */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-scroll-left {
+  animation: scroll-left 40s linear infinite;
+}
+.animate-scroll-right {
+  animation: scroll-right 40s linear infinite;
+}
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Menu, X, User } from 'lucide-react';
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 
 export default function Navbar() {
@@ -78,42 +79,50 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Nav */}
-      {isOpen && (
-        <div className="md:hidden absolute top-20 left-0 w-full bg-[#0A0A0A] glow-line-bottom shadow-2xl flex flex-col p-6 gap-6">
-          {links.map(link => (
-            <Link 
-              key={link.href} 
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-              className={clsx(
-                "text-lg font-medium tracking-wide uppercase glow-text-hover",
-                pathname === link.href ? "text-[#7C3AED]" : "text-[#A1A1AA]"
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="h-px bg-zinc-800/50 my-2 stitch-border" />
-          {session ? (
-            <>
-              <Link href={session.user.role === 'ADMIN' ? '/admin' : '/dashboard'} onClick={() => setIsOpen(false)} className="text-lg font-medium text-white uppercase glow-text-hover">
-                Dashboard
-              </Link>
-              <button 
-                onClick={() => { signOut(); setIsOpen(false); }} 
-                className="text-lg font-medium text-red-500 uppercase text-left"
+      {/* Mobile Nav — AnimatePresence enables exit animation when isOpen becomes false */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.19, 1, 0.22, 1] }}
+            className="md:hidden absolute top-20 left-0 w-full bg-[#0A0A0A] glow-line-bottom shadow-2xl flex flex-col p-6 gap-6"
+          >
+            {links.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className={clsx(
+                  "text-lg font-medium tracking-wide uppercase glow-text-hover",
+                  pathname === link.href ? "text-[#7C3AED]" : "text-[#A1A1AA]"
+                )}
               >
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link href="/login" onClick={() => setIsOpen(false)} className="text-lg font-medium text-white uppercase glow-text-hover">
-              Login
-            </Link>
-          )}
-        </div>
-      )}
+                {link.label}
+              </Link>
+            ))}
+            <div className="h-px bg-zinc-800/50 my-2" />
+            {session ? (
+              <>
+                <Link href={session.user.role === 'ADMIN' ? '/admin' : '/dashboard'} onClick={() => setIsOpen(false)} className="text-lg font-medium text-white uppercase glow-text-hover">
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => { signOut(); setIsOpen(false); }}
+                  className="text-lg font-medium text-red-500 uppercase text-left"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link href="/login" onClick={() => setIsOpen(false)} className="text-lg font-medium text-white uppercase glow-text-hover">
+                Login
+              </Link>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

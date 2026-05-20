@@ -1,0 +1,63 @@
+
+> valore-frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.47:3000
+- Environments: .env.local
+✓ Ready in 12.2s
+Creating turbopack project {
+  dir: 'C:\\Users\\pc\\projectw\\valore\\valore-frontend',
+  testMode: true
+}
+
+ GET / 200 in 1820ms (next.js: 1276ms, application-code: 544ms)
+ GET / 200 in 900ms (next.js: 152ms, application-code: 748ms)
+ GET /login 200 in 705ms (next.js: 407ms, application-code: 299ms)
+ GET /api/auth/session 200 in 27.3s (next.js: 27.2s, application-code: 113ms)
+ GET /api/auth/providers 200 in 11.6s (next.js: 11.4s, application-code: 115ms)
+ GET /api/auth/csrf 200 in 58ms (next.js: 38ms, application-code: 21ms)
+ POST /api/auth/callback/credentials 200 in 1158ms (next.js: 6ms, application-code: 1152ms)
+ GET /api/auth/session 200 in 72ms (next.js: 42ms, application-code: 31ms)
+ GET /dashboard 200 in 462ms (next.js: 318ms, application-code: 144ms)
+ GET /dashboard 200 in 82ms (next.js: 7ms, application-code: 75ms)
+ GET / 200 in 145ms (next.js: 11ms, application-code: 134ms)
+ GET /dashboard 200 in 90ms (next.js: 9ms, application-code: 81ms)
+ GET /api/auth/csrf 200 in 51ms (next.js: 37ms, application-code: 15ms)
+ POST /api/auth/signout 200 in 23ms (next.js: 5ms, application-code: 18ms)
+ GET /dashboard 200 in 326ms (next.js: 6ms, application-code: 320ms)
+ GET /api/auth/session 200 in 39ms (next.js: 6ms, application-code: 34ms)
+ GET /login 200 in 96ms (next.js: 8ms, application-code: 88ms)
+ GET /api/auth/providers 200 in 56ms (next.js: 32ms, application-code: 23ms)
+ GET /api/auth/csrf 200 in 41ms (next.js: 6ms, application-code: 35ms)
+ POST /api/auth/callback/credentials 200 in 382ms (next.js: 5ms, application-code: 377ms)
+ GET /api/auth/session 200 in 49ms (next.js: 7ms, application-code: 42ms)
+ GET /dashboard 200 in 76ms (next.js: 13ms, application-code: 63ms)
+ GET /shop 200 in 620ms (next.js: 491ms, application-code: 130ms)
+ GET /shop/3 200 in 2.3s (next.js: 2.2s, application-code: 97ms)
+ GET /shop/3 200 in 195ms (next.js: 49ms, application-code: 146ms)
+ GET /shop/3 200 in 69ms (next.js: 6ms, application-code: 63ms)
+ GET /checkout?orderId=1&title=TikTok+Virality+Masterclass&category=Mini-Course&price=99.99 200 in 637ms (next.js: 489ms, application-code: 148ms)
+ GET /checkout/success?orderId=1 200 in 602ms (next.js: 472ms, application-code: 131ms)
+ GET /dashboard 200 in 78ms (next.js: 9ms, application-code: 69ms)
+ GET /api/auth/csrf 200 in 50ms (next.js: 38ms, application-code: 13ms)
+ POST /api/auth/signout 200 in 50ms (next.js: 4ms, application-code: 46ms)
+ GET /dashboard 200 in 180ms (next.js: 6ms, application-code: 175ms)
+ GET /api/auth/session 200 in 44ms (next.js: 8ms, application-code: 35ms)
+ GET /login 200 in 73ms (next.js: 10ms, application-code: 63ms)
+ GET /api/auth/providers 200 in 54ms (next.js: 37ms, application-code: 16ms)
+ GET /api/auth/csrf 200 in 48ms (next.js: 5ms, application-code: 43ms)
+ POST /api/auth/callback/credentials 200 in 393ms (next.js: 6ms, application-code: 387ms)
+ GET /api/auth/session 200 in 45ms (next.js: 5ms, application-code: 40ms)
+ GET /dashboard 200 in 71ms (next.js: 9ms, application-code: 62ms)
+ GET /admin 200 in 568ms (next.js: 436ms, application-code: 132ms)
+✓ Compiled in 10.8s
+ GET /admin 200 in 844ms (next.js: 418ms, application-code: 426ms)
+ GET /admin 200 in 136ms (next.js: 13ms, application-code: 122ms)
+ GET /api/auth/session 200 in 390ms (next.js: 332ms, application-code: 57ms)
+ GET /admin 200 in 4.0s (next.js: 152ms, application-code: 3.8s)
+ POST /api/auth/_log 200 in 72ms (next.js: 45ms, application-code: 26ms)
+ GET /api/auth/session 200 in 54ms (next.js: 10ms, application-code: 44ms)
+ GET /api/auth/session 200 in 214ms (next.js: 84ms, application-code: 129ms)
+ GET /api/auth/session 200 in 47ms (next.js: 25ms, application-code: 21ms)
