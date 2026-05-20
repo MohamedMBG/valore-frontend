@@ -3,7 +3,6 @@
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import axios from 'axios';
 import Link from 'next/link';
 import { ArrowLeft, CreditCard, LockKeyhole } from 'lucide-react';
 import { API_BASE_URL } from '@/services/api';
@@ -55,11 +54,11 @@ function CheckoutContent() {
       setSubmitting(true);
 
       // This simulates the final confirmation step of a hosted payment form.
-      await axios.post(
-        `${API_BASE_URL}/stripe/complete-order?orderId=${orderId}`,
-        null,
-        { headers: { Authorization: `Bearer ${session.accessToken}` } }
-      );
+      const res = await fetch(`${API_BASE_URL}/stripe/complete-order?orderId=${orderId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.accessToken}` },
+      });
+      if (!res.ok) throw new Error('Checkout confirmation failed');
 
       router.push(`/checkout/success?orderId=${orderId}`);
     } catch (submitError) {

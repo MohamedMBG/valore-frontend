@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ProductContext } from '@/context/ProductContext';
 import { Star, CheckCircle, ArrowLeft, Download } from 'lucide-react';
 import Link from 'next/link';
-import axios from 'axios';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { API_BASE_URL } from '@/services/api';
 
@@ -26,23 +26,23 @@ export default function ProductDetails() {
 
     try {
       setCheckoutLoading(true);
-      const res = await axios.post(
-        `${API_BASE_URL}/stripe/create-checkout-session`,
-        {
-          // The backend checkout contract expects explicit items and quantities.
-          items: [{ productId: product.id, quantity: 1 }],
+      // The backend checkout contract expects explicit items and quantities.
+      const res = await fetch(`${API_BASE_URL}/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.accessToken}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${session.accessToken}`,
-          },
-        }
-      );
+        body: JSON.stringify({ items: [{ productId: product.id, quantity: 1 }] }),
+      });
+
+      if (!res.ok) throw new Error('Checkout session creation failed');
+      const data = await res.json();
 
       // Create the order first, then move the user to the simulated payment form.
-      if (res.data?.orderId) {
+      if (data?.orderId) {
         const checkoutQuery = new URLSearchParams({
-          orderId: String(res.data.orderId),
+          orderId: String(data.orderId),
           title: product.title,
           category: product.category || 'Digital Access',
           price: product.price.toFixed(2),
@@ -73,11 +73,19 @@ export default function ProductDetails() {
           {/* Image Gallery */}
           <div className="space-y-6">
             <div className="aspect-[4/5] md:aspect-square bg-zinc-950 border border-zinc-800 overflow-hidden relative group">
-              <img 
-                src={product.imageUrl || 'https://via.placeholder.com/800x800'} 
-                alt={product.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+              {product.imageUrl ? (
+                <Image
+                  src={product.imageUrl}
+                  alt={product.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                  <span className="text-zinc-700 uppercase tracking-widest text-xs">No image</span>
+                </div>
+              )}
             </div>
           </div>
 
