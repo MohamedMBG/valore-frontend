@@ -5,17 +5,17 @@ import Image from 'next/image';
 import { Play, ExternalLink, Eye, Camera } from 'lucide-react';
 
 const row1Items = [
-  { id: 11, title: 'Cinematic Travel Reel', category: 'Video Editing', views: '2.3M', tag: 'TikTok', icon: Play, image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80', accent: '#7C3AED' },
-  { id: 12, title: 'Brand Identity — NOIR', category: 'Creative Direction', views: '890K', tag: 'Studio', icon: ExternalLink, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', accent: '#00D1FF' },
-  { id: 13, title: 'Urban Lifestyle Edit', category: 'Filming & Post', views: '1.1M', tag: 'Reels', icon: Play, image: 'https://images.unsplash.com/photo-1521747116042-5a810fda9664?w=800&q=80', accent: '#7C3AED' },
-  { id: 14, title: 'Product Launch — ELITE', category: 'Commercial Content', views: '4.5M', tag: 'Campagne', icon: ExternalLink, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80', accent: '#00D1FF' },
-  { id: 15, title: 'Night City Timelapses', category: 'Cinematography', views: '3.2M', tag: 'TikTok', icon: Play, image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80', accent: '#7C3AED' },
+  { id: 11, title: 'Cinematic Travel Reel', category: 'Video Editing', views: '2.3M', tag: 'TikTok', icon: Play, image: '/generated/sc-travel.jpg', accent: '#7C3AED' },
+  { id: 12, title: 'Brand Identity — NOIR', category: 'Creative Direction', views: '890K', tag: 'Studio', icon: ExternalLink, image: '/generated/sc-noir.jpg', accent: '#00D1FF' },
+  { id: 13, title: 'Urban Lifestyle Edit', category: 'Filming & Post', views: '1.1M', tag: 'Reels', icon: Play, image: '/generated/sc-urban.jpg', accent: '#7C3AED' },
+  { id: 14, title: 'Product Launch — ELITE', category: 'Commercial Content', views: '4.5M', tag: 'Campagne', icon: ExternalLink, image: '/generated/sc-launch.jpg', accent: '#00D1FF' },
+  { id: 15, title: 'Night City Timelapses', category: 'Cinematography', views: '3.2M', tag: 'TikTok', icon: Play, image: '/generated/sc-timelapse.jpg', accent: '#7C3AED' },
 ];
 
 const row2Items = [
-  { id: 21, title: 'Neon Tokyo Nights', category: 'Photography', views: '1.5M', tag: 'Urban', icon: Camera, image: 'https://images.unsplash.com/photo-1554797589-7241f4bce47b?w=800&q=80', accent: '#00D1FF' },
-  { id: 22, title: 'Editorial Portrait', category: 'Shooting', views: '650K', tag: 'Fashion', icon: Camera, image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80', accent: '#7C3AED' },
-  { id: 23, title: 'Supercar Aesthetics', category: 'Automotive', views: '2.8M', tag: 'Commercial', icon: Camera, image: 'https://images.unsplash.com/photo-1614200179396-2bdb77ebf81b?w=800&q=80', accent: '#00D1FF' },
+  { id: 21, title: 'Neon Tokyo Nights', category: 'Photography', views: '1.5M', tag: 'Urban', icon: Camera, image: '/generated/sc-tokyo.jpg', accent: '#00D1FF' },
+  { id: 22, title: 'Editorial Portrait', category: 'Shooting', views: '650K', tag: 'Fashion', icon: Camera, image: '/generated/sc-portrait.jpg', accent: '#7C3AED' },
+  { id: 23, title: 'Supercar Aesthetics', category: 'Automotive', views: '2.8M', tag: 'Commercial', icon: Camera, image: '/generated/sc-supercar.jpg', accent: '#00D1FF' },
   { id: 24, title: 'Minimalist Architecture', category: 'Design', views: '920K', tag: 'Lifestyle', icon: Camera, image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80', accent: '#7C3AED' },
   { id: 25, title: 'Street Culture', category: 'Reportage', views: '1.8M', tag: 'Documentary', icon: Camera, image: 'https://images.unsplash.com/photo-1517598024396-46c53fb3afbe?w=800&q=80', accent: '#00D1FF' },
 ];

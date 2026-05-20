@@ -10,9 +10,9 @@ const ShowcaseSection = dynamic(() => import('@/components/ShowcaseSection'));
 
 // Dummy data for products featured
 const featuredProducts = [
-  { id: 1, title: 'The Ultimate Creator Guide', price: 29.99, category: 'Guide PDF', imageUrl: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80', rating: 5, reviews: 120 },
-  { id: 2, title: 'Cinematic LUTs Pack', price: 49.99, category: 'Templates', imageUrl: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800&q=80', rating: 4.8, reviews: 85 },
-  { id: 3, title: 'TikTok Virality Masterclass', price: 99.99, category: 'Mini-Course', imageUrl: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=800&q=80', rating: 4.9, reviews: 200 }
+  { id: 1, title: 'The Ultimate Creator Guide', price: 29.99, category: 'Guide PDF', imageUrl: '/generated/product-guide.jpg', rating: 5, reviews: 120 },
+  { id: 2, title: 'Cinematic LUTs Pack', price: 49.99, category: 'Templates', imageUrl: '/generated/product-luts.jpg', rating: 4.8, reviews: 85 },
+  { id: 3, title: 'TikTok Virality Masterclass', price: 99.99, category: 'Mini-Course', imageUrl: '/generated/product-masterclass.jpg', rating: 4.9, reviews: 200 }
 ];
 
 export default function Home() {
@@ -23,7 +23,7 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-[#0A0A0A]/80 md:bg-[#0A0A0A]/70 z-10" />
           <Image
-            src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=1600&q=80"
+            src="/generated/hero-bg.jpg"
             alt="Creative Studio"
             fill
             priority
@@ -68,7 +68,7 @@ export default function Home() {
           <div className="relative stitch-border luxury-card p-2 md:p-4">
             <div className="aspect-[4/5] bg-black overflow-hidden relative rounded-lg">
               <Image
-                src="https://images.unsplash.com/photo-1552168324-d612d77725e3?w=800&q=80"
+                src="/generated/about-creator.jpg"
                 alt="Creator @drogow"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"

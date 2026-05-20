@@ -15,10 +15,10 @@ export const useProductContext = () => {
 
 // Module-level constant — no re-allocation on every render
 const FALLBACK_PRODUCTS = [
-  { id: 1, title: 'The Ultimate Creator Guide', price: 29.99, category: 'Guide PDF', imageUrl: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80', rating: 5, reviews: 120, description: "A complete 50-page PDF guide that teaches you how to hack the TikTok algorithm." },
-  { id: 2, title: 'Cinematic LUTs Pack', price: 49.99, category: 'Templates', imageUrl: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800&q=80', rating: 4.8, reviews: 85, description: "10 exclusive LUTs to give a cinematic look to your videos." },
-  { id: 3, title: 'TikTok Virality Masterclass', price: 99.99, category: 'Mini-Course', imageUrl: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=800&q=80', rating: 4.9, reviews: 200, description: "A 2-hour video training to go from 0 to 100k followers." },
-  { id: 4, title: 'Notion Creator Dashboard', price: 19.99, category: 'Templates', imageUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=800&q=80', rating: 4.5, reviews: 40, description: "The Notion template I use to organize my scripts and shoots." },
+  { id: 1, title: 'The Ultimate Creator Guide', price: 29.99, category: 'Guide PDF', imageUrl: '/generated/product-guide.jpg', rating: 5, reviews: 120, description: "A complete 50-page PDF guide that teaches you how to hack the TikTok algorithm." },
+  { id: 2, title: 'Cinematic LUTs Pack', price: 49.99, category: 'Templates', imageUrl: '/generated/product-luts.jpg', rating: 4.8, reviews: 85, description: "10 exclusive LUTs to give a cinematic look to your videos." },
+  { id: 3, title: 'TikTok Virality Masterclass', price: 99.99, category: 'Mini-Course', imageUrl: '/generated/product-masterclass.jpg', rating: 4.9, reviews: 200, description: "A 2-hour video training to go from 0 to 100k followers." },
+  { id: 4, title: 'Notion Creator Dashboard', price: 19.99, category: 'Templates', imageUrl: '/generated/product-notion.jpg', rating: 4.5, reviews: 40, description: "The Notion template I use to organize my scripts and shoots." },
 ];
 
 export const ProductProvider = ({ children }) => {
