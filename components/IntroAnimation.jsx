@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const IntroAnimation = ({ onComplete }) => {
@@ -10,6 +10,18 @@ const IntroAnimation = ({ onComplete }) => {
   const [showBranding, setShowBranding] = useState(true);
   const name = "AURELIUS DROGOW";
   const letters = name.split("");
+
+  // Compute particle positions once on mount — Math.random() in render causes new values every re-render
+  const particles = useMemo(() =>
+    Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      startX: Math.random() * 100,
+      endX: Math.random() * 100 + (Math.random() - 0.5) * 10,
+      duration: Math.random() * 5 + 5,
+      delay: Math.random() * 5,
+    })),
+    []
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -49,8 +61,15 @@ const IntroAnimation = ({ onComplete }) => {
             <source src="/videomp_.mp4" type="video/mp4" />
           </video>
 
-          {/* Subtle Grain Overlay */}
-          <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150"></div>
+          {/* Grain overlay — inline SVG avoids external fetch on every pageview */}
+          <div
+            className="absolute inset-0 opacity-[0.05] pointer-events-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '300px',
+            }}
+          />
 
           {/* Cinematic color and focus layers */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_52%,rgba(255,255,255,0.10),transparent_34%)]" />
@@ -62,27 +81,14 @@ const IntroAnimation = ({ onComplete }) => {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(10,10,10,0.12)_0%,rgba(0,0,0,0.84)_100%)]" />
           <div className="absolute inset-0 shadow-[inset_0_0_160px_rgba(0,0,0,0.9)]" />
 
-          {/* Animating Particles - Client Side Only to avoid Hydration Mismatch */}
+          {/* Particles — isMounted guard prevents hydration mismatch; positions from useMemo not Math.random() in render */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {isMounted && [...Array(30)].map((_, i) => (
+            {isMounted && particles.map((p) => (
               <motion.div
-                key={i}
-                initial={{ 
-                  x: Math.random() * 100 + "%", 
-                  y: "110%", 
-                  opacity: 0 
-                }}
-                animate={{ 
-                  y: "-10%", 
-                  opacity: [0, 0.4, 0],
-                  x: (Math.random() * 100 + (Math.random() - 0.5) * 10) + "%"
-                }}
-                transition={{ 
-                  duration: Math.random() * 5 + 5, 
-                  repeat: Infinity, 
-                  ease: "linear",
-                  delay: Math.random() * 5
-                }}
+                key={p.id}
+                initial={{ x: p.startX + "%", y: "110%", opacity: 0 }}
+                animate={{ y: "-10%", opacity: [0, 0.4, 0], x: p.endX + "%" }}
+                transition={{ duration: p.duration, repeat: Infinity, ease: "linear", delay: p.delay }}
                 className="absolute w-[2px] h-[2px] bg-amber-200/40 rounded-full blur-[1px]"
               />
             ))}

@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import IntroAnimation from './IntroAnimation';
+import dynamic from 'next/dynamic';
+
+// Dynamic import: IntroAnimation (framer-motion + video logic) only loads on homepage
+// Other pages pay zero JS cost for this component
+const IntroAnimation = dynamic(() => import('./IntroAnimation'), { ssr: false });
 
 const IntroWrapper = ({ children }) => {
   const pathname = usePathname();

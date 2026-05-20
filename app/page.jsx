@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { ArrowRight, Star, Video, Download } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import CinematicDivider from '@/components/CinematicDivider';
-import ShowcaseSection from '@/components/ShowcaseSection';
 import NewsletterForm from '@/components/NewsletterForm';
+
+// Below-fold section — lazy load to improve initial bundle and LCP
+const ShowcaseSection = dynamic(() => import('@/components/ShowcaseSection'));
 
 // Dummy data for products featured
 const featuredProducts = [
