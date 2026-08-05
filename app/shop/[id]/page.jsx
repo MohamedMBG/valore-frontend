@@ -19,7 +19,7 @@ export default function ProductDetails() {
   const product = products.find((item) => item.id.toString() === id);
 
   const handleCheckout = async () => {
-    if (!session) {
+    if (!session?.accessToken) {
       router.push('/login?callbackUrl=' + encodeURIComponent(window.location.href));
       return;
     }
@@ -36,7 +36,10 @@ export default function ProductDetails() {
         body: JSON.stringify({ items: [{ productId: product.id, quantity: 1 }] }),
       });
 
-      if (!res.ok) throw new Error('Checkout session creation failed');
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Checkout session creation failed (${res.status}): ${errorText || 'No response body'}`);
+      }
       const data = await res.json();
 
       // Create the order first, then move the user to the simulated payment form.
